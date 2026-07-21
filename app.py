@@ -1,34 +1,29 @@
-import random
-import requests
-from flask import Flask, request
+import asyncio
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import Message
+from aiogram.filters import Command
 
-BOT_TOKEN = '8658765599:AAHQUjKZFP9v6Jtat_L5kAnKqjWTj0MXQJY'
-pending_binds = {}
+# ТВОЙ ТОКЕН (прямо в коде)
+TOKEN = "8611461483:AAHk3o1EaSh0JZ1XygsKOYdS-BcGzZox19k"
 
-app = Flask(__name__)
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
 
-@app.route('/getkey')
-def get_key():
-    chat_id = request.args.get('chat_id', '')
-    nickname = request.args.get('nick', 'Игрок')
-    if not chat_id:
-        return "ERROR"
-    key = random.randint(100000, 999999)
-    pending_binds[str(key)] = {'chat_id': chat_id, 'nickname': nickname}
-    return str(key)
+@dp.message(Command("start"))
+async def start(message: Message):
+    await message.answer("🚀 Бот работает! (токен в коде)")
 
-@app.route('/confirm')
-def confirm():
-    key = request.args.get('key', '')
-    player = request.args.get('player', '')
-    if key in pending_binds:
-        data = pending_binds[key]
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-        msg = f"Аккаунт {player} привязан!"
-        requests.post(url, data={'chat_id': data['chat_id'], 'text': msg})
-        del pending_binds[key]
-        return "OK"
-    return "ERROR"
+@dp.message(Command("help"))
+async def help_cmd(message: Message):
+    await message.answer("Просто отправь любое сообщение, я отвечу!")
 
-if __name__ == '__main__':
-    app.run()
+@dp.message()
+async def echo(message: Message):
+    await message.answer(f"Ты написал: {message.text}")
+
+async def main():
+    print("Бот запущен!")
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
